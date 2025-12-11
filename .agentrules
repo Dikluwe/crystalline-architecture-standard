@@ -1,0 +1,114 @@
+# Crystalline Architecture - Agent Rules
+# Regras para Agentes de IA (Gemini, Claude, GPT, etc.)
+
+# =============================================================================
+# CONTEXT LOADING PROTOCOL / PROTOCOLO DE CARREGAMENTO DE CONTEXTO
+# =============================================================================
+
+## Reading Order / Ordem de Leitura
+When starting ANY task, ALWAYS read in this exact order:
+Ao iniciar QUALQUER tarefa, SEMPRE leia nesta ordem exata:
+
+1. `00_nucleo/` → Understand the seed / Entenda a semente
+2. `01_core/` → Understand pure logic / Entenda a lógica pura
+3. Relevant adapter layer / Camada de adaptador relevante
+4. `04_wiring/` → Understand composition / Entenda a composição
+
+# =============================================================================
+# NUCLEATION LOCK / TRAVA DE NUCLEAÇÃO
+# =============================================================================
+
+## Before Writing Code / Antes de Escrever Código
+CHECK: Does specification exist in `00_nucleo/specs/`?
+VERIFICAR: A especificação existe em `00_nucleo/specs/`?
+
+- If NO → Create spec first, request human approval / Crie spec primeiro, peça aprovação
+- If YES → Proceed with implementation / Proceda com implementação
+
+## Spec Template / Template de Especificação
+```markdown
+# Feature: [Name]
+## Purpose / Propósito
+## Requirements / Requisitos
+## Acceptance Criteria / Critérios de Aceite
+## Interface Contract / Contrato de Interface
+```
+
+# =============================================================================
+# LAYER RULES / REGRAS DE CAMADA
+# =============================================================================
+
+## 01_core (Pure Crystal / Cristal Puro)
+ALLOWED / PERMITIDO:
+- Pure functions / Funções puras
+- Language standard library / Biblioteca padrão da linguagem
+- Types and interfaces / Tipos e interfaces
+
+FORBIDDEN / PROIBIDO:
+- Database access / Acesso a banco de dados
+- Network requests / Requisições de rede  
+- File system operations / Operações de sistema de arquivos
+- UI frameworks / Frameworks de UI
+- System time/clock / Tempo/relógio do sistema
+- External dependencies / Dependências externas
+
+## 02_shell (Surface / Superfície)
+- CAN import: 01_core / PODE importar: 01_core
+- CANNOT import: 03_infra / NÃO PODE importar: 03_infra
+
+## 03_infra (Support / Suporte)
+- CAN import: 01_core / PODE importar: 01_core
+- CANNOT import: 02_shell / NÃO PODE importar: 02_shell
+- Implements interfaces defined in 01_core / Implementa interfaces definidas em 01_core
+
+## 04_wiring (Energy / Energia)
+- CAN import: ALL (00-03) / PODE importar: TODOS (00-03)
+- This is where DI container lives / Aqui vive o container de DI
+
+## _lab (Arena / Rinha)
+- QUARANTINE ZONE / ZONA DE QUARENTENA
+- Code here is VOLATILE / Código aqui é VOLÁTIL
+- NEVER import into main system / NUNCA importe para o sistema principal
+
+# =============================================================================
+# LINEAGE TRACING / RASTREABILIDADE DE LINHAGEM
+# =============================================================================
+
+## Required Header / Cabeçalho Obrigatório
+Every code file MUST have / Todo arquivo de código DEVE ter:
+
+```
+/**
+ * Crystalline Lineage / Linhagem Cristalina
+ * @spec 00_nucleo/specs/<spec-name>.md
+ * @contract 00_nucleo/contracts/<contract-name>.md
+ */
+```
+
+# =============================================================================
+# ANTI-HALLUCINATION CHECKLIST / LISTA ANTI-ALUCINAÇÃO
+# =============================================================================
+
+Before completing any task, verify / Antes de completar qualquer tarefa, verifique:
+
+1. [ ] Implementation matches spec? / Implementação corresponde à spec?
+2. [ ] Dependencies flow correctly? / Dependências fluem corretamente?
+3. [ ] No I/O in 01_core? / Nenhum I/O em 01_core?
+4. [ ] No _lab imports in main code? / Nenhum import de _lab no código principal?
+5. [ ] Lineage header present? / Cabeçalho de linhagem presente?
+
+# =============================================================================
+# DECISION TREE / ÁRVORE DE DECISÃO
+# =============================================================================
+
+```
+New code to write? / Novo código para escrever?
+│
+├─ Is it a specification? → 00_nucleo/specs/
+├─ Is it a contract/type? → 00_nucleo/contracts/
+├─ Is it pure logic (no I/O)? → 01_core/
+├─ Is it UI/API/CLI? → 02_shell/
+├─ Is it DB/Network/Files? → 03_infra/
+├─ Is it config/DI/main()? → 04_wiring/
+└─ Is it experimental? → _lab/
+```

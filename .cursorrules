@@ -1,0 +1,95 @@
+# Crystalline Architecture - AI Agent Rules
+# These rules are for AI coding assistants (Cursor, Copilot, etc.)
+
+## MANDATORY PROTOCOLS
+
+### 1. Nucleation Lock
+Before implementing ANY feature:
+1. Check if specification exists in `00_nucleo/specs/`
+2. Check if interface contract exists in `00_nucleo/contracts/`
+3. If missing, CREATE the specification FIRST, then wait for human approval
+4. Only after approval, proceed with implementation
+
+### 2. Layer Hierarchy (NEVER VIOLATE)
+```
+ALLOWED IMPORTS:
+01_core → 00_nucleo (specs only as reference)
+02_shell → 01_core (NEVER 03_infra)
+03_infra → 01_core (NEVER 02_shell)
+04_wiring → ALL (00-03)
+
+FORBIDDEN:
+01_core → 02_shell, 03_infra, 04_wiring
+02_shell → 03_infra
+03_infra → 02_shell
+ANY → _lab
+```
+
+### 3. Zero I/O in Core
+The `01_core` directory MUST contain:
+- Pure functions only
+- No database calls
+- No network requests
+- No file system access
+- No system clock/time
+- No external libraries (only language standard lib)
+
+### 4. Lab Quarantine
+- NEVER import code from `_lab/` into any numbered directory
+- Lab experiments that succeed must be REWRITTEN from scratch in `01_core`
+- Lab code is volatile and can be deleted at any time
+
+### 5. Context Loading Order
+When starting any task, read directories in this order:
+1. `00_nucleo/` - Understand specifications
+2. `01_core/` - Understand domain logic
+3. Relevant `02_shell/` or `03_infra/` - Understand adapters
+4. `04_wiring/` - Understand composition
+
+### 6. Lineage Header
+Every new code file MUST include a comment header:
+```
+// Crystalline Lineage:
+// Spec: 00_nucleo/specs/<spec-name>.md
+// Contract: 00_nucleo/contracts/<contract-name>.md
+```
+
+## FILE PLACEMENT DECISION TREE
+
+```
+Is it a specification or business rule?
+├── YES → 00_nucleo/specs/
+└── NO ↓
+
+Is it an interface contract or type definition?
+├── YES → 00_nucleo/contracts/
+└── NO ↓
+
+Is it pure logic with ZERO I/O?
+├── YES → 01_core/
+└── NO ↓
+
+Does it handle user input (UI/API/CLI)?
+├── YES → 02_shell/
+└── NO ↓
+
+Does it interact with external systems (DB/Network/Files)?
+├── YES → 03_infra/
+└── NO ↓
+
+Is it configuration, DI, or main()?
+├── YES → 04_wiring/
+└── NO ↓
+
+Is it experimental or a benchmark?
+├── YES → _lab/
+└── NO → Ask for clarification
+```
+
+## ANTI-HALLUCINATION CHECKS
+
+Before completing any task:
+1. Does implementation match the spec in `00_nucleo`?
+2. Are all dependencies flowing in the correct direction?
+3. Is there any I/O code in `01_core`? (Should be NONE)
+4. Is there any `_lab` import in main code? (Should be NONE)
